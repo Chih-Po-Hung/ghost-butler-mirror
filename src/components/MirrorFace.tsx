@@ -7,8 +7,18 @@ import {
   type GeoLocation,
   type WeatherResult,
 } from '../lib/weather'
+import {
+  addEvent,
+  deleteEvent,
+  editEvent,
+  loadEvents,
+  type EventInput,
+  type ScheduleEvent,
+} from '../lib/schedule'
 import WeatherPanel from './WeatherPanel'
 import SettingsPanel from './SettingsPanel'
+import TodaySchedule from './TodaySchedule'
+import ScheduleEditor from './ScheduleEditor'
 
 /** Static greeting from the butler, in Traditional Chinese. */
 const GREETING = '晚安，主人。您的鏡中管家，隨侍在側。'
@@ -78,6 +88,7 @@ export default function MirrorFace() {
   const [result, setResult] = useState<WeatherResult | null>(null)
   const [loading, setLoading] = useState(true)
   const resultRef = useRef<WeatherResult | null>(null)
+  const [events, setEvents] = useState<ScheduleEvent[]>(() => loadEvents())
 
   // Tick once per second, aligned to the wall-clock second boundary.
   useEffect(() => {
@@ -141,6 +152,22 @@ export default function MirrorFace() {
     }
   }, [location])
 
+  // Schedule mutations go through the lib (which validates + persists), then
+  // the parent re-reads so the mirror face and editor stay in sync. Throws
+  // surface to the editor, which shows the message.
+  function handleAdd(input: EventInput) {
+    addEvent(input)
+    setEvents(loadEvents())
+  }
+  function handleEdit(id: string, input: EventInput) {
+    editEvent(id, input)
+    setEvents(loadEvents())
+  }
+  function handleDelete(id: string) {
+    deleteEvent(id)
+    setEvents(loadEvents())
+  }
+
   return (
     <div className="crt">
       <div className="crt__scanlines" aria-hidden="true" />
@@ -157,6 +184,7 @@ export default function MirrorFace() {
           {formatDate(now)}
         </time>
         <WeatherPanel result={result} loading={loading} cityName={location.name} />
+        <TodaySchedule events={events} now={now} />
       </main>
 
       <SettingsPanel
@@ -169,6 +197,13 @@ export default function MirrorFace() {
           setLoading(true)
           setLocation(loc)
         }}
+      />
+
+      <ScheduleEditor
+        events={events}
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
     </div>
   )

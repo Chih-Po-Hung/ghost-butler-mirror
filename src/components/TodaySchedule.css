@@ -1,0 +1,74 @@
+/*
+ * Today's schedule readout for the Ghost-Butler mirror face.
+ * Inherits the phosphor tokens from index.css so it reads as part of the
+ * same CRT screen as the clock, greeting and weather.
+ */
+
+.today {
+  margin: 0;
+  color: var(--phosphor);
+  text-align: center;
+  text-shadow:
+    0 0 2px var(--phosphor-bright),
+    0 0 6px var(--phosphor),
+    0 0 16px rgba(77, 255, 102, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.today__heading {
+  margin: 0;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  letter-spacing: 0.25em;
+  opacity: 0.85;
+}
+
+.today__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.today__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6em;
+  flex-wrap: wrap;
+}
+
+.today__time {
+  font-size: clamp(0.95rem, 2.4vw, 1.5rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--phosphor-bright);
+  white-space: nowrap;
+}
+
+.today__title {
+  font-size: clamp(0.9rem, 2.2vw, 1.4rem);
+  letter-spacing: 0.06em;
+  opacity: 0.95;
+}
+
+.today__note {
+  font-size: clamp(0.75rem, 1.8vw, 1.05rem);
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  font-style: italic;
+}
+
+/* Quiet butler line when the day is clear. */
+.today--empty {
+  font-family: "Iowan Old Style", "Palatino Linotype", "URW Palladio L",
+    "Songti TC", "Noto Serif TC", "Source Han Serif TC", serif;
+  font-size: clamp(0.9rem, 2.3vw, 1.35rem);
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  font-style: italic;
+}
