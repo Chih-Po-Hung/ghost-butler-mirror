@@ -1,0 +1,80 @@
+/*
+ * Weather readout styling for the Ghost-Butler mirror face.
+ * Inherits the warm green phosphor tokens defined in index.css so it reads
+ * as part of the same CRT screen as the clock and greeting.
+ */
+
+.weather {
+  margin: 0;
+  color: var(--phosphor);
+  text-align: center;
+  text-shadow:
+    0 0 2px var(--phosphor-bright),
+    0 0 6px var(--phosphor),
+    0 0 16px rgba(77, 255, 102, 0.55);
+  line-height: 1.25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+}
+
+.weather__city {
+  margin: 0;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  letter-spacing: 0.25em;
+  opacity: 0.85;
+}
+
+.weather__now {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+}
+
+.weather__temp {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.weather__cond {
+  font-size: clamp(1rem, 2.6vw, 1.8rem);
+  letter-spacing: 0.1em;
+  opacity: 0.95;
+}
+
+.weather__range {
+  margin: 0;
+  font-size: clamp(0.8rem, 2.2vw, 1.3rem);
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "cached" badge shown only when the live fetch failed and we fell back. */
+.weather__cached {
+  margin-top: 0.35em;
+  font-size: clamp(0.7rem, 1.6vw, 1rem);
+  letter-spacing: 0.2em;
+  color: var(--phosphor-dim);
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 999px;
+  padding: 0.1em 0.7em;
+  opacity: 0.9;
+}
+
+/* Brief first-load placeholder (never a blank area). */
+.weather--loading,
+.weather--unavailable {
+  font-size: clamp(0.85rem, 2.2vw, 1.3rem);
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+}
+
+.weather--unavailable {
+  font-style: italic;
+  opacity: 0.6;
+}

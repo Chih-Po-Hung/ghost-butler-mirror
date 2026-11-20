@@ -1,8 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './CrtEffects.css'
+import {
+  getWeather,
+  loadLocation,
+  saveLocation,
+  type GeoLocation,
+  type WeatherResult,
+} from '../lib/weather'
+import WeatherPanel from './WeatherPanel'
+import SettingsPanel from './SettingsPanel'
 
 /** Static greeting from the butler, in Traditional Chinese. */
 const GREETING = '晚安，主人。您的鏡中管家，隨侍在側。'
+
+/** Refresh the weather at most this often in the background. */
+const REFRESH_MS = 30 * 60 * 1000
 
 function formatClock(now: Date): string {
   return now.toLocaleTimeString('en-US', { hour12: false })
@@ -62,6 +74,10 @@ function GhostButler() {
 
 export default function MirrorFace() {
   const [now, setNow] = useState(() => new Date())
+  const [location, setLocation] = useState<GeoLocation>(() => loadLocation())
+  const [result, setResult] = useState<WeatherResult | null>(null)
+  const [loading, setLoading] = useState(true)
+  const resultRef = useRef<WeatherResult | null>(null)
 
   // Tick once per second, aligned to the wall-clock second boundary.
   useEffect(() => {
@@ -75,6 +91,55 @@ export default function MirrorFace() {
       if (intervalId !== undefined) window.clearInterval(intervalId)
     }
   }, [])
+
+  // Load weather whenever the city changes (also the initial load). The reset
+  // to "loading" happens in the change handler (an event), not here; this effect
+  // only kicks off the fetch and updates state once it resolves.
+  useEffect(() => {
+    let cancelled = false
+    resultRef.current = null
+    getWeather(location)
+      .then((r) => {
+        if (cancelled) return
+        resultRef.current = r
+        setResult(r)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [location])
+
+  // Silent background refresh: every 30 min, and whenever the tab returns to
+  // view or the browser comes back online. Skips the loading flash. The
+  // `active` flag discards any refresh that was in flight when the city changed.
+  useEffect(() => {
+    let active = true
+    const refresh = () => {
+      if (!active || !resultRef.current?.snapshot) return
+      getWeather(location).then((r) => {
+        if (!active) return
+        resultRef.current = r
+        setResult(r)
+      })
+    }
+    const intervalId = window.setInterval(refresh, REFRESH_MS)
+    const onOnline = () => refresh()
+    const onVisible = () => {
+      if (!document.hidden) refresh()
+    }
+    window.addEventListener('online', onOnline)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      active = false
+      window.clearInterval(intervalId)
+      window.removeEventListener('online', onOnline)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [location])
 
   return (
     <div className="crt">
@@ -91,7 +156,20 @@ export default function MirrorFace() {
         <time className="mirror__date" dateTime={now.toISOString()}>
           {formatDate(now)}
         </time>
+        <WeatherPanel result={result} loading={loading} cityName={location.name} />
       </main>
+
+      <SettingsPanel
+        location={location}
+        onChange={(loc) => {
+          saveLocation(loc)
+          // Reset to the loading line for the new city, from the event that
+          // caused the change rather than from the fetch effect.
+          setResult(null)
+          setLoading(true)
+          setLocation(loc)
+        }}
+      />
     </div>
   )
 }
