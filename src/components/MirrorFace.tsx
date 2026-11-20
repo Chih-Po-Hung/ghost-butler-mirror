@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './CrtEffects.css'
 import {
   getWeather,
@@ -11,10 +11,13 @@ import {
   addEvent,
   deleteEvent,
   editEvent,
+  getEventsOnDate,
   loadEvents,
+  todayKey,
   type EventInput,
   type ScheduleEvent,
 } from '../lib/schedule'
+import ButlerChat from './ButlerChat'
 import WeatherPanel from './WeatherPanel'
 import SettingsPanel from './SettingsPanel'
 import TodaySchedule from './TodaySchedule'
@@ -89,6 +92,12 @@ export default function MirrorFace() {
   const [loading, setLoading] = useState(true)
   const resultRef = useRef<WeatherResult | null>(null)
   const [events, setEvents] = useState<ScheduleEvent[]>(() => loadEvents())
+
+  // Today's events, recomputed only when the stored set or the calendar day
+  // changes (not every tick). Shared by the mirror face and the butler chat so
+  // both answer from the one live source of truth.
+  const dateKey = todayKey(now)
+  const todays = useMemo(() => getEventsOnDate(events, dateKey), [events, dateKey])
 
   // Tick once per second, aligned to the wall-clock second boundary.
   useEffect(() => {
@@ -204,6 +213,12 @@ export default function MirrorFace() {
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <ButlerChat
+        weather={result?.snapshot ?? null}
+        events={todays}
+        now={now}
       />
     </div>
   )
