@@ -1,0 +1,210 @@
+/*
+ * CRT look + Ghost-Butler mirror face styling.
+ * Scanlines, flicker and vignette are pure CSS overlays layered over the
+ * content so the text itself stays crisp and readable.
+ */
+
+/* ---------- Screen container ---------- */
+
+.crt {
+  position: fixed;
+  inset: 0;
+  background: var(--screen-black);
+  overflow: hidden;
+  border-radius: 18px;
+  /* Faint inset curve + bezel shadow to suggest a glass CRT face. */
+  box-shadow:
+    inset 0 0 120px 24px rgba(0, 0, 0, 0.85),
+    inset 0 0 2px 1px rgba(77, 255, 102, 0.15);
+}
+
+/* ---------- Overlay layers (pointer-events none) ---------- */
+
+.crt__scanlines,
+.crt__flicker,
+.crt__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.crt__scanlines {
+  z-index: 2;
+  /* 1px dark line every 3px. */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.35) 3px
+  );
+}
+
+.crt__flicker {
+  z-index: 3;
+  background: rgba(0, 0, 0, 0);
+  /* Subtle, irregular brightness dips so it reads as a living CRT without
+     fighting readability. Long, quiet cycle with brief dips. */
+  animation: crt-flicker 7s linear infinite;
+}
+
+.crt__vignette {
+  z-index: 4;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 52%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0; }
+  6% { opacity: 0; }
+  7% { opacity: 0.55; }
+  8% { opacity: 0; }
+  44% { opacity: 0; }
+  45% { opacity: 0.4; }
+  46% { opacity: 0; }
+  78% { opacity: 0; }
+  79% { opacity: 0.3; }
+  80% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Mirror face layout ---------- */
+
+.mirror {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.7rem, 2vh, 1.5rem);
+  padding: 4vh 4vw;
+  text-align: center;
+  user-select: none;
+}
+
+.mirror__greeting,
+.mirror__clock,
+.mirror__date {
+  margin: 0;
+  color: var(--phosphor);
+  text-shadow:
+    0 0 2px var(--phosphor-bright),
+    0 0 6px var(--phosphor),
+    0 0 16px rgba(77, 255, 102, 0.55);
+}
+
+.mirror__greeting {
+  font-family: "Iowan Old Style", "Palatino Linotype", "URW Palladio L",
+    "Songti TC", "Noto Serif TC", "Source Han Serif TC", serif;
+  font-size: clamp(1.05rem, 2.6vw, 1.9rem);
+  letter-spacing: 0.08em;
+  opacity: 0.95;
+}
+
+.mirror__clock {
+  font-size: clamp(3.5rem, 13vw, 9rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mirror__date {
+  font-size: clamp(0.85rem, 2.4vw, 1.6rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* ---------- Ghost-butler portrait ---------- */
+
+.ghost {
+  width: clamp(120px, 18vw, 180px);
+  height: auto;
+  animation: ghost-bob 6s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 5px var(--phosphor))
+    drop-shadow(0 0 1px var(--phosphor-bright));
+}
+
+.ghost__body {
+  fill: rgba(77, 255, 102, 0.08);
+  stroke: var(--phosphor);
+  stroke-width: 2;
+}
+
+.ghost__crown,
+.ghost__brim {
+  fill: var(--screen-black);
+  stroke: var(--phosphor);
+  stroke-width: 2;
+}
+
+.ghost__band {
+  fill: var(--phosphor-dim);
+  stroke: none;
+}
+
+.ghost__eye {
+  fill: var(--screen-black);
+  stroke: var(--phosphor);
+  stroke-width: 1.5;
+}
+
+.ghost__pupil {
+  fill: var(--phosphor-bright);
+  stroke: none;
+}
+
+.ghost__monocle {
+  fill: none;
+  stroke: var(--phosphor-bright);
+  stroke-width: 1.6;
+}
+
+.ghost__cord {
+  fill: none;
+  stroke: var(--phosphor);
+  stroke-width: 1;
+}
+
+.ghost__mouth {
+  fill: none;
+  stroke: var(--phosphor);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.ghost__bow {
+  fill: rgba(77, 255, 102, 0.14);
+  stroke: var(--phosphor);
+  stroke-width: 1.6;
+}
+
+.ghost__knot {
+  fill: var(--phosphor-dim);
+  stroke: var(--phosphor);
+  stroke-width: 1.2;
+}
+
+@keyframes ghost-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .ghost,
+  .crt__flicker {
+    animation: none;
+  }
+}
