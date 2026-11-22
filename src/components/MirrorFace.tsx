@@ -4,20 +4,25 @@ import {
   getWeather,
   loadLocation,
   saveLocation,
+  weatherLabel,
   type GeoLocation,
   type WeatherResult,
+  type WeatherSnapshot,
 } from '../lib/weather'
 import {
   addEvent,
   deleteEvent,
   editEvent,
+  formatTimeRange,
   getEventsOnDate,
   loadEvents,
   todayKey,
   type EventInput,
   type ScheduleEvent,
 } from '../lib/schedule'
+import { primeSpeech } from '../lib/speech'
 import ButlerChat from './ButlerChat'
+import SpeechControls from './SpeechControls'
 import WeatherPanel from './WeatherPanel'
 import SettingsPanel from './SettingsPanel'
 import TodaySchedule from './TodaySchedule'
@@ -40,6 +45,34 @@ function formatDate(now: Date): string {
     month: 'long',
     day: 'numeric',
   })
+}
+
+/**
+ * Compose the spoken opening briefing in the butler's Traditional Chinese
+ * voice: greeting, today's weather, and today's schedule. Built from the same
+ * live state the mirror face shows, so what is spoken matches what is read.
+ */
+function buildBriefing(
+  snapshot: WeatherSnapshot | null,
+  todays: ScheduleEvent[],
+): string {
+  const parts: string[] = [GREETING]
+  if (!snapshot) {
+    parts.push('天色尚未映入鏡中，稍候再為您探看。')
+  } else {
+    const { location, current, today } = snapshot
+    parts.push(
+      `${location.name}此刻約${Math.round(current.temperature)}度，${weatherLabel(current.weatherCode)}。`,
+      `今日最高約${Math.round(today.tempMax)}度、最低約${Math.round(today.tempMin)}度。`,
+    )
+  }
+  if (todays.length === 0) {
+    parts.push('今日尚無行程，主人請安心歇息。')
+  } else {
+    const lines = todays.map((e) => `${formatTimeRange(e)} ${e.title}`)
+    parts.push(`今日共${todays.length}件行程：${lines.join('，')}。`)
+  }
+  return parts.join('')
 }
 
 /** Ghost-butler portrait drawn as inline SVG (no external image). */
@@ -91,6 +124,7 @@ export default function MirrorFace() {
   const [result, setResult] = useState<WeatherResult | null>(null)
   const [loading, setLoading] = useState(true)
   const resultRef = useRef<WeatherResult | null>(null)
+  const briefedRef = useRef(false)
   const [events, setEvents] = useState<ScheduleEvent[]>(() => loadEvents())
 
   // Today's events, recomputed only when the stored set or the calendar day
@@ -161,6 +195,16 @@ export default function MirrorFace() {
     }
   }, [location])
 
+  // Speak the opening briefing once, after the first weather attempt
+  // resolves (so the weather line is included). Browsers block speech before a
+  // user gesture; primeSpeech falls back to the first click/tap in that case.
+  // The ref guards it to a single briefing for the session.
+  useEffect(() => {
+    if (briefedRef.current || loading) return
+    briefedRef.current = true
+    primeSpeech(buildBriefing(result?.snapshot ?? null, todays))
+  }, [result, loading, todays])
+
   // Schedule mutations go through the lib (which validates + persists), then
   // the parent re-reads so the mirror face and editor stay in sync. Throws
   // surface to the editor, which shows the message.
@@ -195,6 +239,8 @@ export default function MirrorFace() {
         <WeatherPanel result={result} loading={loading} cityName={location.name} />
         <TodaySchedule events={events} now={now} />
       </main>
+
+      <SpeechControls />
 
       <SettingsPanel
         location={location}

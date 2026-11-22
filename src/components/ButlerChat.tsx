@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { respond, type ButlerContext } from '../lib/butler'
+import { speak } from '../lib/speech'
 import './ButlerChat.css'
 
 interface ChatMessage {
@@ -31,7 +32,7 @@ let nextId = 1
  * the live state MirrorFace already holds (weather snapshot, today's events,
  * the clock) — there is no second data source here. Enter (or the 送出
  * button) sends; the butler and user lines are drawn to read as distinct
- * speakers. Speech is out of scope for M4.
+ * speakers. Each reply is spoken aloud via lib/speech (a no-op when muted).
  */
 export default function ButlerChat({ weather, events, now }: ButlerChatProps) {
   const [open, setOpen] = useState(false)
@@ -51,11 +52,15 @@ export default function ButlerChat({ weather, events, now }: ButlerChatProps) {
     const text = input.trim()
     if (!text) return
     const ctx: ButlerContext = { weather, events, now }
+    const reply = respond(text, ctx)
     setMessages((prev) => [
       ...prev,
       { id: nextId++, role: 'user', text },
-      { id: nextId++, role: 'butler', text: respond(text, ctx) },
+      { id: nextId++, role: 'butler', text: reply },
     ])
+    // Read each butler reply aloud as it appears (the speech module is a
+    // no-op when muted or unsupported, so this never breaks the chat).
+    speak(reply)
     setInput('')
   }
 

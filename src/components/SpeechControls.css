@@ -1,0 +1,98 @@
+/*
+ * Mute + voice controls for the Ghost-Butler Smart Mirror (milestone M5).
+ * Sits in the top-left corner (the only free corner) and reuses the same
+ * warm-green phosphor + pill styling as the other corner controls. Plain CSS
+ * only; sits above the CRT overlays (z-index 5) so the controls stay crisp.
+ */
+
+.speech {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.5rem);
+  top: clamp(1rem, 3vh, 2.5rem);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+/* ---------- mute toggle ---------- */
+
+.speech__mute {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: clamp(0.75rem, 1.6vw, 1rem);
+  letter-spacing: 0.2em;
+  color: var(--phosphor-dim);
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 999px;
+  padding: 0.35em 1em;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.speech__mute:hover,
+.speech__mute:focus-visible {
+  color: var(--phosphor-bright);
+  border-color: var(--phosphor);
+  background: rgba(77, 255, 102, 0.08);
+  outline: none;
+}
+
+/* Muted state reads dimmer so the mirror face shows speech is off. */
+.speech__mute--muted {
+  color: var(--phosphor-bright);
+  border-color: var(--phosphor);
+  background: rgba(77, 255, 102, 0.12);
+}
+
+/* ---------- voice picker ---------- */
+
+.speech__voice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.speech__voice-label {
+  font-size: clamp(0.66rem, 1.5vw, 0.82rem);
+  letter-spacing: 0.18em;
+  opacity: 0.6;
+}
+
+.speech__select {
+  font-family: inherit;
+  font-size: clamp(0.78rem, 1.7vw, 0.95rem);
+  letter-spacing: 0.04em;
+  color: var(--phosphor-bright);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 8px;
+  padding: 0.3em 0.5em;
+  max-width: min(70vw, 14rem);
+  outline: none;
+  cursor: pointer;
+}
+
+.speech__select:focus {
+  border-color: var(--phosphor);
+  box-shadow: 0 0 6px rgba(77, 255, 102, 0.35);
+}
+
+.speech__select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Keep the native dropdown options on-palette (color-scheme: dark is set
+   globally, so the open menu renders dark). */
+.speech__select option {
+  background: var(--screen-black);
+  color: var(--phosphor-bright);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speech__mute {
+    transition: none;
+  }
+}
