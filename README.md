@@ -91,7 +91,7 @@ Every file is under ~300 lines. See
 | M3 — Schedule | Event CRUD, localStorage persistence, today view | `e9c3106` |
 | M4 — Butler chat | Scripted responder, live-context answers | `5b6df0d` |
 | M5 — Speech | Web Speech briefing + replies, mute, voice picker | `f537329` |
-| M6 — Haunt + polish | *Implemented by hand* — see note below | uncommitted |
+| M6 — Haunt + polish | *Implemented by hand* — see note below | `dc8100c` |
 
 **M6 note (honest):** the Kiro CLI run for M6 was refused by the
 account's monthly usage limit ("You've reached your monthly usage
