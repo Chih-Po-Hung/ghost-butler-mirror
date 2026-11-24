@@ -22,7 +22,8 @@
 
 .crt__scanlines,
 .crt__flicker,
-.crt__vignette {
+.crt__vignette,
+.crt__glitch {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -70,6 +71,51 @@
   100% { opacity: 0; }
 }
 
+/* ---------- Haunt-mode glitch (M6, 1 second) ---------- */
+
+/* Colour-band overlay, invisible until a haunt fires. */
+.crt__glitch {
+  z-index: 3;
+  opacity: 0;
+  background:
+    linear-gradient(to bottom, transparent 42%, rgba(255, 0, 80, 0.22) 42%, rgba(255, 0, 80, 0.22) 46%, transparent 46%),
+    linear-gradient(to bottom, transparent 68%, rgba(0, 229, 255, 0.2) 68%, rgba(0, 229, 255, 0.2) 71%, transparent 71%);
+  mix-blend-mode: screen;
+}
+
+.crt--glitching .crt__glitch {
+  animation: crt-glitch-bands 1s steps(2, end);
+}
+
+.crt--glitching .mirror {
+  animation: crt-glitch-shake 1s steps(2, end);
+}
+
+@keyframes crt-glitch-bands {
+  0% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 1; transform: translateY(-14px); }
+  25% { opacity: 0.6; transform: translateY(9px); }
+  40% { opacity: 1; transform: translateY(-6px); }
+  55% { opacity: 0.4; transform: translateY(12px); }
+  70% { opacity: 1; transform: translateY(-3px); }
+  85% { opacity: 0.5; transform: translateY(4px); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+
+@keyframes crt-glitch-shake {
+  0% { transform: translate(0); filter: none; }
+  10% { transform: translate(-6px, 2px) skewX(4deg); filter: hue-rotate(90deg) saturate(3); }
+  20% { transform: translate(5px, -3px); filter: hue-rotate(-60deg); }
+  30% { transform: translate(-3px, 1px) skewX(-6deg); filter: none; }
+  40% { transform: translate(4px, 2px); filter: hue-rotate(120deg) saturate(2); }
+  50% { transform: translate(-5px, -2px) scaleY(1.02); filter: none; }
+  60% { transform: translate(3px, 0) skewX(3deg); }
+  70% { transform: translate(-2px, 1px); filter: hue-rotate(40deg); }
+  80% { transform: translate(2px, -1px) skewX(-2deg); filter: none; }
+  90% { transform: translate(0); }
+  100% { transform: translate(0); filter: none; }
+}
+
 /* ---------- Mirror face layout ---------- */
 
 .mirror {
@@ -81,7 +127,9 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.7rem, 2vh, 1.5rem);
-  padding: 4vh 4vw;
+  /* Generous bottom padding: the bottom-centre Haunt row sits below the
+     face, so the centred content must clear it on short viewports. */
+  padding: 4vh 4vw clamp(4.5rem, 9vh, 6rem);
   text-align: center;
   user-select: none;
 }
@@ -205,6 +253,11 @@
 @media (prefers-reduced-motion: reduce) {
   .ghost,
   .crt__flicker {
+    animation: none;
+  }
+  /* A haunt still shows its line, but the face does not shake. */
+  .crt--glitching .mirror,
+  .crt--glitching .crt__glitch {
     animation: none;
   }
 }

@@ -65,16 +65,21 @@ function formatTemp(value: number): string {
   return `${Math.round(value)}°`
 }
 
-/** WMO code implies rain, drizzle, snow, showers or thunder (worth an umbrella). */
-function isPrecipitation(code: number): boolean {
+/**
+ * WMO code implies liquid precipitation: drizzle (51–57), rain (61–67),
+ * showers (80–82) or thunder (95–99). Rain only — never snow.
+ */
+function isRain(code: number): boolean {
   return (
     (code >= 51 && code <= 67) ||
-    (code >= 71 && code <= 77) ||
     (code >= 80 && code <= 82) ||
-    code === 85 ||
-    code === 86 ||
     code >= 95
   )
+}
+
+/** WMO code implies snow: snowfall (71–77) or snow showers (85–86). */
+function isSnow(code: number): boolean {
+  return (code >= 71 && code <= 77) || code === 85 || code === 86
 }
 
 /* ---------- per-intent replies (all composed from live context) ---------- */
@@ -89,8 +94,12 @@ function weatherReply(ctx: ButlerContext): string {
     `主人，${location.name}此刻約 ${formatTemp(current.temperature)}，${weatherLabel(current.weatherCode)}。`,
     `今日高 ${formatTemp(today.tempMax)}、低 ${formatTemp(today.tempMin)}。`,
   ]
-  if (isPrecipitation(today.weatherCode)) {
-    parts.push('今日有雨雪之兆，主人出門宜備傘。')
+  // Rain and snow get different lines: the label itself names the form
+  // (code 61 → 小雨, never 雪), so the butler never mixes the two.
+  if (isRain(today.weatherCode)) {
+    parts.push(`今日有${weatherLabel(today.weatherCode)}之兆，主人出門宜備傘。`)
+  } else if (isSnow(today.weatherCode)) {
+    parts.push(`今日有${weatherLabel(today.weatherCode)}之兆，主人出門宜添衣保暖。`)
   }
   parts.push('天色，我已替您看過了。')
   return parts.join('')

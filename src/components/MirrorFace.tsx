@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './CrtEffects.css'
 import {
   getWeather,
@@ -20,8 +20,9 @@ import {
   type EventInput,
   type ScheduleEvent,
 } from '../lib/schedule'
-import { primeSpeech } from '../lib/speech'
+import { primeSpeech, speak } from '../lib/speech'
 import ButlerChat from './ButlerChat'
+import HauntMode from './HauntMode'
 import SpeechControls from './SpeechControls'
 import WeatherPanel from './WeatherPanel'
 import SettingsPanel from './SettingsPanel'
@@ -126,6 +127,8 @@ export default function MirrorFace() {
   const resultRef = useRef<WeatherResult | null>(null)
   const briefedRef = useRef(false)
   const [events, setEvents] = useState<ScheduleEvent[]>(() => loadEvents())
+  const [glitching, setGlitching] = useState(false)
+  const glitchTimerRef = useRef<number | undefined>(undefined)
 
   // Today's events, recomputed only when the stored set or the calendar day
   // changes (not every tick). Shared by the mirror face and the butler chat so
@@ -205,6 +208,19 @@ export default function MirrorFace() {
     primeSpeech(buildBriefing(result?.snapshot ?? null, todays))
   }, [result, loading, todays])
 
+  // Haunt mode (M6): a 1-second glitch on the mirror face plus the spoken
+  // interjection. Speaking goes through the shared speech module, so the
+  // mute toggle still silences it; the glitch is pure CSS and never touches
+  // the briefing, weather, schedule, or chat state.
+  const handleHaunt = useCallback((line: string) => {
+    setGlitching(true)
+    window.clearTimeout(glitchTimerRef.current)
+    glitchTimerRef.current = window.setTimeout(() => setGlitching(false), 1000)
+    speak(line)
+  }, [])
+
+  useEffect(() => () => window.clearTimeout(glitchTimerRef.current), [])
+
   // Schedule mutations go through the lib (which validates + persists), then
   // the parent re-reads so the mirror face and editor stay in sync. Throws
   // surface to the editor, which shows the message.
@@ -222,10 +238,11 @@ export default function MirrorFace() {
   }
 
   return (
-    <div className="crt">
+    <div className={glitching ? 'crt crt--glitching' : 'crt'}>
       <div className="crt__scanlines" aria-hidden="true" />
       <div className="crt__flicker" aria-hidden="true" />
       <div className="crt__vignette" aria-hidden="true" />
+      <div className="crt__glitch" aria-hidden="true" />
 
       <main className="mirror">
         <GhostButler />
@@ -260,6 +277,8 @@ export default function MirrorFace() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+
+      <HauntMode onHaunt={handleHaunt} />
 
       <ButlerChat
         weather={result?.snapshot ?? null}

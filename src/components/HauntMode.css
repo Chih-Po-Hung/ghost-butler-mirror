@@ -1,0 +1,108 @@
+/*
+ * Haunt mode controls for the Ghost-Butler Smart Mirror (milestone M6).
+ * Bottom-centre pill row, between the two bottom-corner toggles, plus a
+ * dismissible interjection toast that floats just above it. Same
+ * warm-green phosphor as the other corner controls, z-index 5 so it sits
+ * above the CRT overlays and stays tappable.
+ */
+
+.haunt {
+  position: absolute;
+  left: 50%;
+  /* Bottom centre, between the two bottom-corner toggles. The mirror
+     face carries extra bottom padding (CrtEffects.css) so the centred
+     content never reaches this row. */
+  bottom: clamp(1rem, 3vh, 2.5rem);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  /* Interjection toast floats above the control pills. */
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: calc(100vw - 2rem);
+}
+
+/* ---------- interjection toast ---------- */
+
+.haunt__toast {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  max-width: min(86vw, 26rem);
+  padding: 0.55em 0.9em;
+  background: rgba(2, 6, 10, 0.92);
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  animation: haunt-fade-in 0.4s ease-out;
+}
+
+.haunt__toast-text {
+  font-family: "Iowan Old Style", "Palatino Linotype", "URW Palladio L",
+    "Songti TC", "Noto Serif TC", "Source Han Serif TC", serif;
+  font-size: clamp(0.85rem, 1.9vw, 1.05rem);
+  letter-spacing: 0.04em;
+  color: var(--phosphor-bright);
+  text-shadow: 0 0 2px var(--phosphor-bright), 0 0 6px var(--phosphor);
+}
+
+.haunt__toast-dismiss {
+  font-size: 0.8rem;
+  color: var(--phosphor-dim);
+  flex: none;
+}
+
+@keyframes haunt-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- control pills ---------- */
+
+.haunt__controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.haunt__button,
+.haunt__toggle {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: clamp(0.75rem, 1.6vw, 1rem);
+  letter-spacing: 0.2em;
+  color: var(--phosphor-dim);
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  border-radius: 999px;
+  padding: 0.35em 1em;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+
+.haunt__button:hover,
+.haunt__toggle:hover,
+.haunt__button:focus-visible,
+.haunt__toggle:focus-visible {
+  color: var(--phosphor-bright);
+  border-color: var(--phosphor);
+  background: rgba(77, 255, 102, 0.08);
+  outline: none;
+}
+
+.haunt__toggle[aria-pressed="true"] {
+  color: var(--phosphor-bright);
+  border-color: var(--phosphor);
+  background: rgba(77, 255, 102, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haunt__toast {
+    animation: none;
+  }
+  .haunt__button,
+  .haunt__toggle {
+    transition: none;
+  }
+}
